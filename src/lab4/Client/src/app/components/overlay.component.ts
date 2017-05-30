@@ -5,6 +5,7 @@ import {DeviceService} from "../services/device.service";
 import {Device} from "../model/device";
 import {ControlUnit} from "../model/controlUnit";
 import {ControlType} from "../model/controlType";
+import {URLSearchParams, Http, Response} from "@angular/http";
 
 @Component({
   selector: 'my-overlay',
@@ -23,7 +24,7 @@ export class OverlayComponent implements OnInit {
   addError: boolean = false;
   createError: boolean = false;
 
-  constructor(private deviceService: DeviceService) {
+  constructor(private deviceService: DeviceService, private http: Http) {
   }
 
 
@@ -101,7 +102,14 @@ export class OverlayComponent implements OnInit {
         device.description = "Genauere Informationen zu dieser Webcam";
         break;
       default:
-        //TODO Lesen Sie die SPARQL - Informationen aus dem SessionStorage und speichern Sie die entsprechenden Informationen zum Gerät
+        let sparqlDev = JSON.parse(sessionStorage.getItem("sparqlDev"));
+        for (let sparqlDevice of sparqlDev) {
+          if (sparqlDevice["label"] == this.selected_type) {
+            device.image = sparqlDevice.url;
+            device.image_alt = "Bild von " + sparqlDevice.label;
+            device.description = sparqlDevice.description;
+          }
+        }
         break;
     }
 
@@ -162,8 +170,51 @@ export class OverlayComponent implements OnInit {
 
 
   getSPARQLTypes(): void {
-    //TODO Lesen Sie mittels SPARQL die gewünschten Daten (wie in der Angabe beschrieben) aus und speichern Sie diese im SessionStorage
-  }
+    let sparqlQuery: string = "" +
+        "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
+        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>" +
+        "PREFIX cat: <http://dbpedia.org/resource/Category:>" +
+        "PREFIX owl: <http://www.w3.org/2002/07/owl#>" +
+        "PREFIX term: <http://purl.org/dc/terms/>" +
+        "PREFIX ont: <http://dbpedia.org/ontology/>" +
+        "PREFIX foaf: <http://xmlns.com/foaf/0.1/>" +
+
+        "SELECT distinct ?label ?url WHERE {" +
+          "?device term:subject cat:Home_automation ." +
+          "?device rdf:type owl:Thing." +
+          "?firma ont:product ?device." +
+          "?device rdfs:label ?label." +
+          "?device foaf:depiction ?url." +
+          "FILTER(LANG(?label)='de')" +
+          "}";
+    let par = new URLSearchParams();
+    par.set('query', sparqlQuery);
+
+    let sparqlDev = sessionStorage.getItem("sparqlDev");
+    if (!sparqlDev) {
+      this.http.get("https://dbpedia.org/sparql", {search: par})
+          .map((response: Response) => {
+            let results = response.json().results.bindings;
+            let sparqlDev: any = [];
+            for (let result of results) {
+              let label = result.label.value;
+              let url = result.url.value;
+              let description = "Genauere Informationen zu " + label;
+              sparqlDev.push({label: label, description:description, url: url});
+            }
+            sessionStorage.setItem('sparqlDev', JSON.stringify(sparqlDev));
+            for (let sparqlDevice of sparqlDev) {
+              this.device_types.push(sparqlDevice["label"]);
+            }
+          }).subscribe();
+      sparqlDev = sessionStorage.getItem("sparqlDev");
+    }else{
+      sparqlDev = JSON.parse(sparqlDev);
+      for (let sparqlDevice of sparqlDev) {
+        this.device_types.push(sparqlDevice["label"]);
+      }
+    }
+}
 
 
   /**
