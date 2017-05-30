@@ -37,8 +37,9 @@ var tls = require('tls');
 var fs = require('fs');
 
 var options = {
-    key  : fs.readFileSync('private.key'),
-    cert : fs.readFileSync('public.cert'),
+    key  : fs.readFileSync('newkey.pem'),
+    cert : fs.readFileSync('newcert.pem'),
+    passphrase: 'hallo',
     requestCert: false,
     rejectUnauthorized: false
 };
@@ -98,16 +99,18 @@ app.post("/createDevice", function (req, res) {
                 //  - die benötigte Bibliothek ist bereits eingebunden
                 //  - siehe https://www.npmjs.com/package/twitter für eine Beschreibung der Bibliothek
                 //  - verwenden Sie getTwitterPublicationString(groupNum, uuid, date) um den Publication String zu erstellen
-
+                var twitterString = getTwitterPublicationString(2, id, new Date().getDay() + '.' + new Date().getMonth() + '.' + new Date().getFullYear() );
                 twitterClient.post('statuses/update',
                     {
-                        status: getTwitterPublicationString(2, id, new Date().getDay() + '.' + new Date().getMonth() + '.' + new Date().getFullYear() )
+                        status: twitterString
                     },
-                    function (error, tweet, response)
+                    function (error)
                     {
-                        if (error) throw error;
-                        console.log(tweet);  // Tweet body.
-                        console.log(response);  // Raw response object.
+                        if (error){
+                            console.log(error);
+                        } else {
+                            console.log(twitterString);
+                        }
                     });
             }
         });
@@ -617,12 +620,12 @@ var server = app.listen(8081, function () {
 
 });
 
-//
-// https.createServer(options, (req, res) => {
-//     res.writeHead(200);
-//     res.end('hello world\n');
-// }).listen(8082);
+var httpsServer = https.createServer(options,app).listen(8082,function () {
+    "use strict";
+    readUser();
+    readDevices();
 
-var server2 = https.createServer(options,app).listen(8082, function(){
-    console.log("Express server listening on port with https " + app.get('port'));
+    var port = httpsServer.address().port;
+
+    console.log("httpsServer running on %s", port);
 });
