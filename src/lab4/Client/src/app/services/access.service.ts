@@ -13,7 +13,7 @@ export class AccessService implements CanActivate {
 
   //TODO Passen Sie die URLs zu Ihrer REST-Schnittstelle, entsprechend der von Ihnen vorgenommenen Änderungen am Server, an
 
-  private loginURL = "http://localhost:8081/login";
+  private loginURL = "https://localhost:8082/login";
   private logoutURL = "https://localhost:8082/logout";
   private statusURl = "https://localhost:8082/getStatus";
   private token: string = null;

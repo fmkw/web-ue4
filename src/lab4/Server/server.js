@@ -101,7 +101,7 @@ app.post("/createDevice", function (req, res) {
 
                 twitterClient.post('statuses/update',
                     {
-                        status: getTwitterPublicationString(2, id, new Date().getDay() + '.' + new Date().getMonth() + '.' + new Date().getFullYear())
+                        status: getTwitterPublicationString(2, id, new Date().getDay() + '.' + new Date().getMonth() + '.' + new Date().getFullYear() )
                     },
                     function (error, tweet, response)
                     {
@@ -617,9 +617,8 @@ var server = app.listen(8081, function () {
 
 });
 
-const httpsPort = 8082;
-const httpsServer = https.createServer(options, app).listen(httpsPort, (s) => {
-    var host = server.address().address;
-    console.log("Big Smart Home Secure Server listening at https://%s:%s", host, httpsPort);
-});
 
+https.createServer(options, (req, res) => {
+    res.writeHead(200);
+    res.end('hello world\n');
+}).listen(8082);
