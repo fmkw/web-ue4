@@ -25,6 +25,16 @@ var invalid_tokens = [];
 var system_start = new Date();
 var failed_logins = 0;
 
+var tls = require('tls');
+var fs = require('fs');
+
+var options = {
+    key  : fs.readFileSync('private.key'),
+    cert : fs.readFileSync('public.cert'),
+    requestCert: false,
+    rejectUnauthorized: false
+};
+
 app.set('secret', "superSecret");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
@@ -78,6 +88,22 @@ app.post("/createDevice", function (req, res) {
                 //  - die benötigte Bibliothek ist bereits eingebunden
                 //  - siehe https://www.npmjs.com/package/twitter für eine Beschreibung der Bibliothek
                 //  - verwenden Sie getTwitterPublicationString(groupNum, uuid, date) um den Publication String zu erstellen
+                var str = "Juhu neuer Device";
+
+                /**
+                 * Twitter URL3
+                 : https://twitter.com/BIGEWA2013
+                 Consumer Key: GZ6tiy1XyB9W0P4xEJudQ
+                 Consumer Secret: gaJDlW0vf7en46JwHAOkZsTHvtAiZ3QUd2mD1x26J9w
+                 Access Token: 1366513208-MutXEbBMAVOwrbFmZtj1r4Ih2vcoHGHE2207002
+                 Access Token Secret: RMPWOePlus3xtURWRVnv1TgrjTyK7Zk33evp4KKyA
+                 */
+
+                //var twitterKey = 'STORAGE.TWITTER.KEY';
+
+                var clientId = 'GZ6tiy1XyB9W0P4xEJudQ';
+                var clientSecret = 'gaJDlW0vf7en46JwHAOkZsTHvtAiZ3QUd2mD1x26J9w';
+                var myToken = '1366513208-MutXEbBMAVOwrbFmZtj1r4Ih2vcoHGHE2207002';
             }
         });
     } else {
@@ -573,7 +599,7 @@ function getTwitterPublicationString(groupNum, uuid, date) {
  * Erzeugt einen http Server auf Port 8081 und stellt die REST-Schnittstelle zur Verfügung
  * @type {http.Server}
  */
-var server = app.listen(8081, function () {
+var server = tls.listen(8081, function () {
 
     "use strict";
     readUser();
