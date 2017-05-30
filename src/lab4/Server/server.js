@@ -18,6 +18,14 @@ var uuid = require('uuid');
 var https = require('https');
 var twitter = require('twitter');
 
+var twitterClient = new twitter
+    ({
+        consumer_key: 'GZ6tiy1XyB9W0P4xEJudQ',
+        consumer_secret: 'gaJDlW0vf7en46JwHAOkZsTHvtAiZ3QUd2mD1x26J9w',
+        access_token_key: '1366513208-MutXEbBMAVOwrbFmZtj1r4Ih2vcoHGHE2207002',
+        access_token_secret: 'RMPWOePlus3xtURWRVnv1TgrjTyK7Zk33evp4KKyA'
+    });
+
 var user;
 var devices;
 var invalid_tokens = [];
@@ -76,7 +84,9 @@ app.post("/createDevice", function (req, res) {
         jwt.verify(token, app.get('secret'), {ignoreExpiration: false}, function (err, decoded) {
             if (err || typeof decoded === "undefined" || invalid_tokens.indexOf(token) >= 0) {
                 res.json({status: 401, message: "Unauthorized"});
-            } else {
+            }
+            else
+                {
                 var device = JSON.parse(req.body.device);
                 var id = uuid.v4();
                 device.id = id;
@@ -88,22 +98,17 @@ app.post("/createDevice", function (req, res) {
                 //  - die benötigte Bibliothek ist bereits eingebunden
                 //  - siehe https://www.npmjs.com/package/twitter für eine Beschreibung der Bibliothek
                 //  - verwenden Sie getTwitterPublicationString(groupNum, uuid, date) um den Publication String zu erstellen
-                var str = "Juhu neuer Device";
 
-                /**
-                 * Twitter URL3
-                 : https://twitter.com/BIGEWA2013
-                 Consumer Key: GZ6tiy1XyB9W0P4xEJudQ
-                 Consumer Secret: gaJDlW0vf7en46JwHAOkZsTHvtAiZ3QUd2mD1x26J9w
-                 Access Token: 1366513208-MutXEbBMAVOwrbFmZtj1r4Ih2vcoHGHE2207002
-                 Access Token Secret: RMPWOePlus3xtURWRVnv1TgrjTyK7Zk33evp4KKyA
-                 */
-
-                //var twitterKey = 'STORAGE.TWITTER.KEY';
-
-                var clientId = 'GZ6tiy1XyB9W0P4xEJudQ';
-                var clientSecret = 'gaJDlW0vf7en46JwHAOkZsTHvtAiZ3QUd2mD1x26J9w';
-                var myToken = '1366513208-MutXEbBMAVOwrbFmZtj1r4Ih2vcoHGHE2207002';
+                twitterClient.post('statuses/update',
+                    {
+                        status: getTwitterPublicationString(2, id, new Date().getDay() + '.' + new Date().getMonth() + '.' + new Date().getFullYear())
+                    },
+                    function (error, tweet, response)
+                    {
+                        if (error) throw error;
+                        console.log(tweet);  // Tweet body.
+                        console.log(response);  // Raw response object.
+                    });
             }
         });
     } else {
@@ -599,7 +604,7 @@ function getTwitterPublicationString(groupNum, uuid, date) {
  * Erzeugt einen http Server auf Port 8081 und stellt die REST-Schnittstelle zur Verfügung
  * @type {http.Server}
  */
-var server = tls.listen(8081, function () {
+var server = app.listen(8081, function () {
 
     "use strict";
     readUser();
@@ -610,5 +615,11 @@ var server = tls.listen(8081, function () {
 
     console.log("Big Smart Home Server listening at http://%s:%s", host, port);
 
+});
+
+const httpsPort = 8082;
+const httpsServer = https.createServer(options, app).listen(httpsPort, (s) => {
+    var host = server.address().address;
+    console.log("Big Smart Home Secure Server listening at https://%s:%s", host, httpsPort);
 });
 
