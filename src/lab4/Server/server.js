@@ -617,8 +617,12 @@ var server = app.listen(8081, function () {
 
 });
 
+//
+// https.createServer(options, (req, res) => {
+//     res.writeHead(200);
+//     res.end('hello world\n');
+// }).listen(8082);
 
-https.createServer(options, (req, res) => {
-    res.writeHead(200);
-    res.end('hello world\n');
-}).listen(8082);
+var server2 = https.createServer(options,app).listen(8082, function(){
+    console.log("Express server listening on port with https " + app.get('port'));
+});
